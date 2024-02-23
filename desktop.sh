@@ -204,8 +204,6 @@ pacstrap /mnt base ${kernel} ${microcode} \
     pipewire-jack \
     firewalld \
     zram-generator \
-    adobe-source-han-sans-otc-fonts \
-    adobe-source-han-serif-otc-fonts \
     gnu-free-fonts \
     reflector \
     mlocate \
@@ -247,7 +245,7 @@ sed -i 's,#COMPRESSION="zstd",COMPRESSION="zstd",g' /mnt/etc/mkinitcpio.conf
 sed -i 's,modconf block filesystems keyboard,keyboard modconf block encrypt filesystems,g' /mnt/etc/mkinitcpio.conf
 
 # Enabling LUKS in GRUB and setting the UUID of the LUKS container.
-UUID=$(blkid $cryptroot | cut -f2 -d'"')
+UUID=$(blkid $ROOT_PARTITION | cut -f2 -d'"')
 sed -i 's/#\(GRUB_ENABLE_CRYPTODISK=y\)/\1/' /mnt/etc/default/grub
 echo "" >> /mnt/etc/default/grub
 echo -e "# Booting with BTRFS subvolume\nGRUB_BTRFS_OVERRIDE_BOOT_PARTITION_DETECTION=true" -o /mnt/etc/default/grub
@@ -272,7 +270,7 @@ chmod 755 /mnt/etc/grub.d/*
 # Adding keyfile to the initramfs to avoid double password.
 dd bs=512 count=4 if=/dev/random of=/mnt/cryptkey/.root.key iflag=fullblock &>/dev/null
 chmod 000 /mnt/cryptkey/.root.key &>/dev/null
-cryptsetup -v luksAddKey /dev/disk/by-partlabel/cryptroot /mnt/cryptkey/.root.key
+cryptsetup -v luksAddKey $ROOT_PARTITION /mnt/cryptkey/.root.key
 sed -i "s#quiet#cryptdevice=UUID=$UUID:cryptroot root=$BTRFS lsm=landlock,lockdown,yama,apparmor,bpf cryptkey=rootfs:/cryptkey/.root.key#g" /mnt/etc/default/grub
 sed -i 's#FILES=()#FILES=(/cryptkey/.root.key)#g' /mnt/etc/mkinitcpio.conf
 
