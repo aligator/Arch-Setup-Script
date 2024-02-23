@@ -32,16 +32,12 @@ kernel_selector () {
 ## user input ##
 
 # Selecting the target for the installation.
-PS3="Select the disk where Arch Linux is going to be installed: "
-select ENTRY in $(lsblk -dpnoNAME|grep -P "/dev/sd|nvme|vd");
-do
-    DISK=$ENTRY
-    echo "Installing Arch Linux on $DISK."
-    break
-done
+lsblk
+read -r -p "On which partition would you like to install Arch Linux? " ROOT_PARTITION
+read -r -p "What is the ESP Partition? " ESP
 
 # Confirming the disk selection.
-read -r -p "This will delete the current partition table on $DISK. Do you agree [y/N]? " response
+read -r -p "This will override the partition $ROOT_PARTITION and may break existing systems using the $ESP. Do you agree [y/N]? " response
 response=${response,,}
 if [[ ! ("$response" =~ ^(yes|y)$) ]]; then
     echo "Quitting."
@@ -76,10 +72,6 @@ pacman -Sy
 # Installing curl
 pacman -S --noconfirm curl
 
-# formatting the disk
-wipefs -af "$DISK" &>/dev/null
-sgdisk -Zo "$DISK" &>/dev/null
-
 # Checking the microcode to install.
 CPU=$(grep vendor_id /proc/cpuinfo)
 if [[ $CPU == *"AuthenticAMD"* ]]; then
@@ -88,31 +80,13 @@ else
     microcode=intel-ucode
 fi
 
-# Creating a new partition scheme.
-echo "Creating new partition scheme on $DISK."
-parted -s "$DISK" \
-    mklabel gpt \
-    mkpart ESP fat32 1MiB 128MiB \
-    set 1 esp on \
-    mkpart cryptroot 128MiB 100% \
-
 sleep 0.1
-ESP="/dev/$(lsblk $DISK -o NAME,PARTLABEL | grep ESP| cut -d " " -f1 | cut -c7-)"
-cryptroot="/dev/$(lsblk $DISK -o NAME,PARTLABEL | grep cryptroot | cut -d " " -f1 | cut -c7-)"
-
-# Informing the Kernel of the changes.
-echo "Informing the Kernel about the disk changes."
-partprobe "$DISK"
-
-# Formatting the ESP as FAT32.
-echo "Formatting the EFI Partition as FAT32."
-mkfs.fat -F 32 -s 2 $ESP &>/dev/null
 
 # Creating a LUKS Container for the root partition.
 echo "Creating LUKS Container for the root partition."
-cryptsetup luksFormat --type luks1 $cryptroot
+cryptsetup luksFormat --type luks1 $ROOT_PARTITION
 echo "Opening the newly created LUKS Container."
-cryptsetup open $cryptroot cryptroot
+cryptsetup open $ROOT_PARTITION cryptroot
 BTRFS="/dev/mapper/cryptroot"
 
 # Formatting the LUKS Container as BTRFS.

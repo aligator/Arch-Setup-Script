@@ -10,7 +10,7 @@ Visit my Matrix group: https://matrix.to/#/#tommytran732:matrix.org
 2. Flash the ISO onto an [USB Flash Drive](https://wiki.archlinux.org/index.php/USB_flash_installation_medium).
 3. Boot the live environment.
 4. Connect to the internet.
-5. `git clone https://github.com/tommytran732/Arch-Setup-Script/`
+5. `git clone https://github.com/aligator/Arch-Setup-Script/`
 6. `cd Arch-Setup-Script`
 7. `./install.sh`
 
