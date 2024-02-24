@@ -385,6 +385,17 @@ arch-chroot /mnt /bin/bash -e <<EOF
         groupadd -r audit
         gpasswd -a $username audit
     fi
+
+    # Install yay
+    pacman -S --needed git base-devel 
+    git clone https://aur.archlinux.org/yay.git
+    cd yay 
+    makepkg -si
+    cd ..
+    rm -rf ./yay
+
+    # Install snap-pac-grub
+    yay -S snap-pac-grub
 EOF
 
 # Enable AppArmor notifications
