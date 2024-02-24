@@ -7,7 +7,7 @@ clear
 # Selecting the kernel flavor to install.
 kernel_selector () {
     echo "List of kernels:"
-    echo "1) Stable — Vanilla Linux kernel and modules, with a few patches applied."
+    echo "1) Stable — Vanilla Linux kernel and modules."
     echo "2) Hardened — A security-focused Linux kernel."
     echo "3) Longterm — Long-term support (LTS) Linux kernel and modules."
     echo "4) Zen Kernel — Optimized for desktop usage."
@@ -259,7 +259,6 @@ echo "$locale.UTF-8 UTF-8"  > /mnt/etc/locale.gen
 echo "LANG=$locale.UTF-8" > /mnt/etc/locale.conf
 
 # Setting up keyboard layout.
-read -r -p "Please insert the keyboard layout you use: " kblayout
 echo "KEYMAP=$kblayout" > /mnt/etc/vconsole.conf
 
 # Configuring /etc/mkinitcpio.conf
@@ -300,17 +299,6 @@ sed -i 's#FILES=()#FILES=(/cryptkey/.root.key)#g' /mnt/etc/mkinitcpio.conf
 # Configure AppArmor Parser caching
 sed -i 's/#write-cache/write-cache/g' /mnt/etc/apparmor/parser.conf
 sed -i 's,#Include /etc/apparmor.d/,Include /etc/apparmor.d/,g' /mnt/etc/apparmor/parser.conf
-
-# Blacklisting kernel modules
-curl https://raw.githubusercontent.com/Kicksecure/security-misc/master/etc/modprobe.d/30_security-misc.conf -o /mnt/etc/modprobe.d/30_security-misc.conf
-chmod 600 /mnt/etc/modprobe.d/*
-
-# Security kernel settings.
-curl https://raw.githubusercontent.com/Kicksecure/security-misc/master/usr/lib/sysctl.d/990-security-misc.conf -o /mnt/etc/sysctl.d/990-security-misc.conf
-sed -i 's/kernel.yama.ptrace_scope=2/kernel.yama.ptrace_scope=3/g' /mnt/etc/sysctl.d/990-security-misc.conf
-curl https://raw.githubusercontent.com/Kicksecure/security-misc/master/etc/sysctl.d/30_silent-kernel-printk.conf -o /mnt/etc/sysctl.d/30_silent-kernel-printk.conf
-curl https://raw.githubusercontent.com/Kicksecure/security-misc/master/etc/sysctl.d/30_security-misc_kexec-disable.conf -o /mnt/etc/sysctl.d/30_security-misc_kexec-disable.conf
-chmod 600 /mnt/etc/sysctl.d/*
 
 # Remove nullok from system-auth
 sed -i 's/nullok//g' /mnt/etc/pam.d/system-auth
@@ -439,10 +427,6 @@ systemctl enable apparmor --root=/mnt &>/dev/null
 echo "Enabling Firewalld."
 systemctl enable firewalld --root=/mnt &>/dev/null
 
-# Enabling Bluetooth Service (This is only to fix the visual glitch with gnome where it gets stuck in the menu at the top right).
-# IF YOU WANT TO USE BLUETOOTH, YOU MUST REMOVE IT FROM THE LIST OF BLACKLISTED KERNEL MODULES IN /mnt/etc/modprobe.d/30_security-misc.conf
-systemctl enable bluetooth --root=/mnt &>/dev/null
-
 # Enabling Reflector timer.
 echo "Enabling Reflector."
 systemctl enable reflector.timer --root=/mnt &>/dev/null
@@ -462,11 +446,6 @@ echo "Enabling Snapper and automatic snapshots entries."
 systemctl enable snapper-timeline.timer --root=/mnt &>/dev/null
 systemctl enable snapper-cleanup.timer --root=/mnt &>/dev/null
 systemctl enable grub-btrfs.path --root=/mnt &>/dev/null
-
-# Setting umask to 077.
-sed -i 's/022/077/g' /mnt/etc/profile
-echo "" >> /mnt/etc/bash.bashrc
-echo "umask 077" >> /mnt/etc/bash.bashrc
 
 # Finishing up
 echo "Done, you may now wish to reboot (further changes can be done by chrooting into /mnt)."
