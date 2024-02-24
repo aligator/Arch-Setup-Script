@@ -204,8 +204,6 @@ pacstrap /mnt base ${kernel} ${microcode} \
     pipewire-alsa \
     pipewire-jack \
     firewalld \
-    zram-generator \
-    gnu-free-fonts \
     reflector \
     mlocate \
     man-db \
@@ -331,13 +329,6 @@ auth		required	pam_wheel.so use_uid
 auth		required	pam_unix.so
 account		required	pam_unix.so
 session		required	pam_unix.so
-EOF
-
-# ZRAM configuration
-bash -c 'cat > /mnt/etc/systemd/zram-generator.conf' <<-'EOF'
-[zram0]
-zram-fraction = 1
-max-zram-size = 8192
 EOF
 
 # Randomize Mac Address.
