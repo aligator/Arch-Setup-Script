@@ -100,7 +100,7 @@ btrfs su cr /mnt/@ &>/dev/null
 btrfs su cr /mnt/@/.snapshots &>/dev/null
 mkdir -p /mnt/@/.snapshots/1 &>/dev/null
 btrfs su cr /mnt/@/.snapshots/1/snapshot &>/dev/null
-btrfs su cr /mnt/@/boot/grub/x86_64-efi &>/dev/null
+btrfs su cr /mnt/@/boot/ &>/dev/null
 btrfs su cr /mnt/@/home &>/dev/null
 btrfs su cr /mnt/@/root &>/dev/null
 btrfs su cr /mnt/@/srv &>/dev/null
@@ -116,8 +116,7 @@ btrfs su cr /mnt/@/var_lib_gdm &>/dev/null
 btrfs su cr /mnt/@/var_lib_AccountsService &>/dev/null
 btrfs su cr /mnt/@/cryptkey &>/dev/null
 
-chattr +C /mnt/@/boot/grub/x86_64-efi
-chattr +C /mnt/@/boot/grub/i386-pc
+chattr +C /mnt/@/boot
 chattr +C /mnt/@/srv
 chattr +C /mnt/@/var_log
 chattr +C /mnt/@/var_log_journal
@@ -151,10 +150,8 @@ chmod 600 /mnt/@/.snapshots/1/info.xml
 umount /mnt
 echo "Mounting the newly created subvolumes."
 mount -o ssd,noatime,space_cache,compress=zstd:15 $BTRFS /mnt
-mkdir -p /mnt/{boot/grub/x86_64-efi,boot/grub/i386-pc,root,home,.snapshots,srv,tmp,/var/log,/var/crash,/var/cache,/var/tmp,/var/spool,/var/lib/libvirt/images,/var/lib/machines,/var/lib/gdm,/var/lib/AccountsService,/cryptkey}
-mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,noexec,subvol=@/boot/grub/x86_64-efi $BTRFS /mnt/boot/grub/x86_64-efi
-mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,subvol=@/root $BTRFS /mnt/boot/grub/x86_64-efi
-mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,subvol=@/root $BTRFS /mnt/boot/grub/i386-pc
+mkdir -p /mnt/{boot,root,home,.snapshots,srv,tmp,/var/log,/var/crash,/var/cache,/var/tmp,/var/spool,/var/lib/libvirt/images,/var/lib/machines,/var/lib/gdm,/var/lib/AccountsService,/cryptkey}
+mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,noexec,subvol=@/boot $BTRFS /mnt/boot
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,subvol=@/root $BTRFS /mnt/root
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,nodev,nosuid,subvol=@/home $BTRFS /mnt/home
 mount -o ssd,noatime,space_cache=v2,autodefrag,compress=zstd:15,discard=async,subvol=@/.snapshots $BTRFS /mnt/.snapshots
@@ -225,8 +222,7 @@ echo "# <file system> <dir> <type> <options> <dump> <pass>
 UUID=$EFI_UUID          /boot/efi       vfat            rw,nosuid,nodev,noexec,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro       0 2
 
 /dev/mapper/cryptroot   /               btrfs           rw,noatime,compress=zstd:15,ssd,space_cache     0 0
-/dev/mapper/cryptroot   /boot/grub/x86_64-efi           btrfs  rw,nosuid,nodev,noatime,compress=zstd:15,ssd,space_cache,subvol=/@/boot/grub/x86_64-efi  0  0
-/dev/mapper/cryptroot   /boot/grub/i386-pc              btrfs  rw,nosuid,nodev,noatime,compress=zstd:15,ssd,space_cache,subvol=/@/boot/grub/i386-pc  0  0
+/dev/mapper/cryptroot   /boot/grub      btrfs           rw,nosuid,nodev,noatime,compress=zstd:15,ssd,space_cache,subvol=/@/boot  0  0
 /dev/mapper/cryptroot   /root           btrfs           rw,nosuid,nodev,noatime,compress=zstd:15,ssd,space_cache,subvol=/@/root 0 0
 /dev/mapper/cryptroot   /home           btrfs           rw,nosuid,nodev,noatime,compress=zstd:15,ssd,space_cache,subvol=/@/home 0 0
 /dev/mapper/cryptroot   /.snapshots     btrfs           rw,noatime,compress=zstd:15,ssd,space_cache,subvol=/@/.snapshots        0 0
